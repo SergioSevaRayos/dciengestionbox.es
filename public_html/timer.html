@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DCIEN Timer Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        /* Tipografía monoespaciada para que los números no "bailen" */
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@800&display=swap');
+        .font-mono-timer { font-family: 'JetBrains Mono', monospace; font-variant-numeric: tabular-nums; }
+        body { background-color: #0f172a; overscroll-behavior-y: contain; }
+    </style>
+</head>
+<body class="text-white h-screen flex flex-col items-center justify-center overflow-hidden selection:bg-transparent">
+
+    <div x-data="timerApp()" class="w-full max-w-md p-6 flex flex-col items-center h-full justify-between py-12">
+        
+        <div class="text-center">
+            <h1 class="text-2xl font-bold tracking-widest text-slate-400 uppercase">DCIEN Timer</h1>
+            <p class="text-sm font-medium mt-1" :class="{
+                'text-yellow-400': state === 'prep',
+                'text-green-400': state === 'work',
+                'text-blue-400': state === 'idle',
+                'text-red-400': state === 'finished'
+            }" x-text="statusText"></p>
+        </div>
+
+        <div class="flex-1 flex items-center justify-center w-full">
+            <div class="text-[6rem] sm:text-[8rem] font-mono-timer font-black leading-none tracking-tighter text-center w-full"
+                 :class="{
+                    'text-yellow-400': state === 'prep',
+                    'text-green-400': state === 'work',
+                    'text-slate-100': state === 'idle',
+                    'text-red-500': state === 'finished'
+                 }"
+                 x-text="formatTime(timeLeft)">
+            </div>
+        </div>
+
+        <div class="w-full flex flex-col gap-4">
+            <button 
+                x-show="state === 'idle' || state === 'finished'" 
+                @click="startTimer()"
+                class="w-full bg-green-500 hover:bg-green-600 text-white font-black text-2xl py-6 rounded-2xl shadow-[0_8px_0_rgb(21,128,61)] active:shadow-[0_0px_0_rgb(21,128,61)] active:translate-y-2 transition-all">
+                START TEST
+            </button>
+
+            <button 
+                x-show="state === 'prep' || state === 'work'" 
+                @click="stopTimer()"
+                class="w-full bg-red-500 hover:bg-red-600 text-white font-black text-2xl py-6 rounded-2xl shadow-[0_8px_0_rgb(185,28,28)] active:shadow-[0_0px_0_rgb(185,28,28)] active:translate-y-2 transition-all">
+                STOP
+            </button>
+            
+            <p class="text-center text-xs text-slate-500 font-medium">⚠️ Recuerda quitar el modo silencio del móvil</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('timerApp', () => ({
+                state: 'idle', // idle, prep, work, finished
+                timeLeft: 0,
+                interval: null,
+                audioCtx: null,
+                wakeLock: null,
+
+                get statusText() {
+                    if (this.state === 'idle') return 'LISTO PARA EMPEZAR';
+                    if (this.state === 'prep') return 'PREPARACIÓN';
+                    if (this.state === 'work') return '¡A TRABAJAR!';
+                    if (this.state === 'finished') return 'ENTRENAMIENTO COMPLETADO';
+                },
+
+                // MAGIA 1: Inicializar audio solo cuando el usuario hace clic (Regla de Apple/Google)
+                async initAudio() {
+                    if (!this.audioCtx) {
+                        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    }
+                    if (this.audioCtx.state === 'suspended') {
+                        await this.audioCtx.resume();
+                    }
+                },
+
+                // Generador de ondas de sonido puro (Cero lag)
+                playBeep(frequency, duration, type = 'sine', volume = 1) {
+                    if (!this.audioCtx) return;
+                    const oscillator = this.audioCtx.createOscillator();
+                    const gainNode = this.audioCtx.createGain();
+                    
+                    oscillator.type = type;
+                    oscillator.frequency.setValueAtTime(frequency, this.audioCtx.currentTime);
+                    
+                    gainNode.gain.setValueAtTime(volume, this.audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.001, this.audioCtx.currentTime + duration);
+
+                    oscillator.connect(gainNode);
+                    gainNode.connect(this.audioCtx.destination);
+                    oscillator.start();
+                    oscillator.stop(this.audioCtx.currentTime + duration);
+                },
+
+                // MAGIA 2: Bloquear la pantalla para que no se apague
+                async requestWakeLock() {
+                    try {
+                        if ('wakeLock' in navigator) {
+                            this.wakeLock = await navigator.wakeLock.request('screen');
+                            console.log('Pantalla bloqueada (Wake Lock activo)');
+                        }
+                    } catch (err) {
+                        console.error('No se pudo bloquear la pantalla:', err);
+                    }
+                },
+
+                releaseWakeLock() {
+                    if (this.wakeLock !== null) {
+                        this.wakeLock.release();
+                        this.wakeLock = null;
+                        console.log('Pantalla liberada');
+                    }
+                },
+
+                async startTimer() {
+                    await this.initAudio();
+                    await this.requestWakeLock();
+                    
+                    this.state = 'prep';
+                    this.timeLeft = 5; // 5 segundos de cuenta atrás inicial
+                    this.tick();
+                },
+
+                tick() {
+                    clearInterval(this.interval);
+                    
+                    // Cálculo basado en fecha exacta para evitar retrasos si el móvil se laguea
+                    let expectedEndTime = Date.now() + (this.timeLeft * 1000);
+
+                    this.interval = setInterval(() => {
+                        let now = Date.now();
+                        let remaining = Math.round((expectedEndTime - now) / 1000);
+
+                        if (remaining > 0) {
+                            if (remaining !== this.timeLeft) {
+                                this.timeLeft = remaining;
+                                // Pitidos cortos en 3, 2, 1
+                                if (this.timeLeft <= 3 && this.timeLeft > 0) {
+                                    this.playBeep(600, 0.15, 'sine');
+                                }
+                            }
+                        } else {
+                            // Cambio de fase
+                            if (this.state === 'prep') {
+                                this.playBeep(1000, 0.6, 'square', 0.5); // Bip largo AGUDO de GO!
+                                this.state = 'work';
+                                this.timeLeft = 10; // 10 segundos de trabajo
+                                expectedEndTime = Date.now() + (this.timeLeft * 1000);
+                            } else if (this.state === 'work') {
+                                this.playBeep(300, 0.8, 'sawtooth', 0.8); // Bip largo GRAVE de FIN
+                                this.state = 'finished';
+                                this.timeLeft = 0;
+                                this.stopTimer(true);
+                            }
+                        }
+                    }, 100); // Comprobamos cada 100ms para máxima precisión
+                },
+
+                stopTimer(isFinished = false) {
+                    clearInterval(this.interval);
+                    this.releaseWakeLock();
+                    if (!isFinished) {
+                        this.state = 'idle';
+                        this.timeLeft = 0;
+                    }
+                },
+
+                formatTime(seconds) {
+                    const m = Math.floor(seconds / 60).toString().padStart(2, '0');
+                    const s = (seconds % 60).toString().padStart(2, '0');
+                    return `${m}:${s}`;
+                }
+            }));
+        });
+    </script>
+</body>
+</html>
