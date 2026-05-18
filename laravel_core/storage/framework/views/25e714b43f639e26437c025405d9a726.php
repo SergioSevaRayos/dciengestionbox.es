@@ -10,7 +10,7 @@
     <div class="max-w-4xl mx-auto">
         <a href="/" class="text-[10px] tracking-[0.3em] uppercase text-gray-500 hover:text-white transition inline-block mb-12">← Volver al Inicio</a>
         
-        @if(session('success')) <div class="bg-green-500/10 border border-green-500 text-green-500 p-4 mb-6 text-xs uppercase tracking-widest italic font-bold">{{ session('success') }}</div> @endif<h1 class="text-4xl font-black italic uppercase tracking-tighter mb-8">Contacto</h1>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?> <div class="bg-green-500/10 border border-green-500 text-green-500 p-4 mb-6 text-xs uppercase tracking-widest italic font-bold"><?php echo e(session('success')); ?></div> <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?><h1 class="text-4xl font-black italic uppercase tracking-tighter mb-8">Contacto</h1>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-16">
             <div class="text-gray-400 space-y-8 text-sm">
@@ -31,7 +31,7 @@
             </div>
 
             <div class="border border-white/10 p-8 bg-white/[0.02]">
-                <form action="{{ route('contact.submit') }}" method="POST" class="space-y-6"> @csrf
+                <form action="<?php echo e(route('contact.submit')); ?>" method="POST" class="space-y-6"> <?php echo csrf_field(); ?>
                     <div>
                         <label class="block text-[9px] uppercase tracking-[0.2em] text-gray-500 mb-2">Nombre completo</label>
                         <input type="text" name="name" required class="w-full bg-black border border-white/10 p-3 text-sm focus:border-white outline-none transition text-white">
@@ -51,3 +51,4 @@
     </div>
 </body>
 </html>
+<?php /**PATH C:\Users\Trending Pc\Documents\dciengestionbox.es\laravel_core\resources\views/contact.blade.php ENDPATH**/ ?>
