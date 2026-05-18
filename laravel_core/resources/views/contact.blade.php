@@ -26,7 +26,7 @@
 
                 <section>
                     <h2 class="text-white font-bold uppercase tracking-widest text-[10px] mb-4">Sede Central</h2>
-                    <p>Alicante, España. 🚀 TEST DEV</p>
+                    <p>Alicante, España. 🚀 TEST DEV v2</p>
                 </section>
             </div>
 
