@@ -103,17 +103,50 @@ class ManageBranding extends Page
         $settings = GymSetting::where('gym_id', $tenant->id)->first();
 
         if ($settings) {
+            $logoPath = null;
+            if (!empty($data['logo'])) {
+                if (is_array($data['logo'])) {
+                    $firstValue = reset($data['logo']);
+                    $firstKey = key($data['logo']);
+                    if (is_string($firstValue) && !is_numeric($firstValue)) {
+                        $logoPath = $firstValue;
+                    } elseif (is_string($firstKey) && !is_numeric($firstKey)) {
+                        $logoPath = $firstKey;
+                    }
+                } elseif (is_string($data['logo'])) {
+                    $logoPath = $data['logo'];
+                }
+            }
+
+            $faviconPath = null;
+            if (!empty($data['favicon'])) {
+                if (is_array($data['favicon'])) {
+                    $firstValue = reset($data['favicon']);
+                    $firstKey = key($data['favicon']);
+                    if (is_string($firstValue) && !is_numeric($firstValue)) {
+                        $faviconPath = $firstValue;
+                    } elseif (is_string($firstKey) && !is_numeric($firstKey)) {
+                        $faviconPath = $firstKey;
+                    }
+                } elseif (is_string($data['favicon'])) {
+                    $faviconPath = $data['favicon'];
+                }
+            }
+
             $settings->update([
                 'gym_name'      => $data['gym_name'],
                 'primary_color' => $data['primary_color'],
-                'logo'          => $data['logo'],
-                'favicon'       => $data['favicon'],
+                'logo'          => $logoPath,
+                'favicon'       => $faviconPath,
                 'enable_arena'  => $data['enable_arena'],
             ]);
 
             // Actualizar propiedades locales para reflejar el estado actual
-            $this->logo = $data['logo'] ? [$data['logo'] => $data['logo']] : [];
-            $this->favicon = $data['favicon'] ? [$data['favicon'] => $data['favicon']] : [];
+            $this->logo = $logoPath ? [$logoPath => $logoPath] : [];
+            $this->favicon = $faviconPath ? [$faviconPath => $faviconPath] : [];
+            
+            $data['logo'] = $this->logo;
+            $data['favicon'] = $this->favicon;
             $this->form->fill($data);
         }
 

@@ -353,4 +353,41 @@ class GymManagementTest extends TestCase
         $this->assertTrue($booking2->delete());
         $this->assertDatabaseMissing('bookings', ['id' => $booking2->id]);
     }
+
+    /**
+     * 7. Guardado de marca y diseño (ManageBranding)
+     */
+    public function test_can_save_branding_settings(): void
+    {
+        // Forzar panel admin y tenant actual
+        \Filament\Facades\Filament::setCurrentPanel(\Filament\Facades\Filament::getPanel('admin'));
+        
+        // Loguear usuario en la sesión del guard 'admin' para que Filament::setTenant() lo detecte
+        auth()->guard('admin')->login($this->admin);
+        
+        \Filament\Facades\Filament::setTenant($this->gym);
+
+        $settings = \App\Models\GymSetting::firstOrCreate(
+            ['gym_id' => $this->gym->id],
+            ['gym_name' => $this->gym->name, 'primary_color' => '#10b981']
+        );
+
+        \Livewire\Livewire::actingAs($this->admin, 'admin')
+            ->test(\App\Filament\Pages\ManageBranding::class)
+            ->fillForm([
+                'gym_name' => 'Energym New Name',
+                'primary_color' => '#ff0000',
+                'logo' => ['branding/logo.png'],
+                'favicon' => ['branding/favicon.png'],
+            ])
+            ->call('save')
+            ->assertHasNoErrors();
+
+        $settings->refresh();
+        $this->assertEquals('Energym New Name', $settings->gym_name);
+        $this->assertEquals('#ff0000', $settings->primary_color);
+        $this->assertEquals('branding/logo.png', $settings->logo);
+        $this->assertEquals('branding/favicon.png', $settings->favicon);
+    }
 }
+
