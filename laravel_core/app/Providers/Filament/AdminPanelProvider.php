@@ -31,8 +31,8 @@ class AdminPanelProvider extends PanelProvider
             ->authGuard('admin')
             ->path('admin')
             ->login()
-            ->passwordReset() // 🌟 AQUÍ ESTÁ LA MAGIA
-            ->profile() // 🌟 Y añadimos el perfil para que puedan cambiarla desde dentro si quieren
+            ->passwordReset()
+            ->profile()
             ->registration(\App\Filament\Pages\Auth\RegisterGymOwner::class)
             ->colors([
                 'primary' => Color::Amber,
@@ -57,7 +57,8 @@ class AdminPanelProvider extends PanelProvider
                 Pages\Dashboard::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\\Filament\\Widgets')
-            ->widgets([])
+            ->widgets([
+            ])
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
                 fn (): string => \Illuminate\Support\Facades\Blade::render("<x-cookie-banner />")

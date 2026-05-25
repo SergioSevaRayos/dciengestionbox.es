@@ -23,14 +23,33 @@ class Booking extends Model
     {
         static::creating(function ($booking) {
             $user = User::find($booking->user_id);
-            if (!$user) return;
+            if (!$user) return false;
 
-            $activePackage = tap(UserPackage::where('user_id', $user->id)
-                ->where('expires_at', '>', now())->orderBy('expires_at', 'asc')->first(), function ($package) {
-                    if (!$package) return UserPackage::where('user_id', request()->user()->id ?? 0)->latest()->first();
-            });
+            $session = GymSession::find($booking->gym_session_id);
+            if (!$session || !$session->start_time) return false;
 
-            if (!$activePackage) return;
+            $sessionDate = Carbon::parse($session->start_time);
+
+            // Buscar pase activo para el momento de la clase
+            $activePackage = UserPackage::where('user_id', $user->id)
+                ->where('expires_at', '>', $sessionDate)
+                ->orderBy('expires_at', 'asc')
+                ->first();
+
+            if (!$activePackage) {
+                // Fallback al último pase del alumno para dar información del error
+                $activePackage = UserPackage::where('user_id', $user->id)->latest()->first();
+            }
+
+            if (!$activePackage) {
+                FilamentNotification::make()->title("Reserva Denegada")->body("No tienes ningún pase para reservar.")->danger()->send();
+                return false;
+            }
+
+            if (Carbon::parse($activePackage->expires_at)->lessThan($sessionDate)) {
+                FilamentNotification::make()->title("Reserva Denegada")->body("Tu pase estará caducado para la fecha de esta clase.")->danger()->send();
+                return false;
+            }
 
             if ($activePackage->type === 'bono') {
                 if ($activePackage->remaining_credits > 0) {
@@ -40,10 +59,6 @@ class Booking extends Model
                     return false;
                 }
             } else if ($activePackage->type === 'tarifa') {
-                $session = GymSession::find($booking->gym_session_id);
-                if (!$session || !$session->start_time) return;
-
-                $sessionDate = Carbon::parse($session->start_time);
                 $limitAmount = (int) $activePackage->limit_amount;
 
                 if ($limitAmount > 0) {
@@ -71,7 +86,7 @@ class Booking extends Model
         });
 
         static::deleting(function ($booking) {
-            if (auth()->check() && auth()->user()->role === 'student') {
+            if (auth()->check() && auth()->user()->role === 'student' && $booking->status === 'booked') {
                 $session = $booking->gymSession;
                 if ($session && $session->start_time && now()->greaterThanOrEqualTo(Carbon::parse($session->start_time)->subMinutes(60))) {
                     FilamentNotification::make()->title('Cancelación Bloqueada')->body('Falta menos de 1 hora para la clase.')->danger()->send();

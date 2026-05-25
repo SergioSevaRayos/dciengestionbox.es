@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
 use App\Models\Package;
+use App\Filament\Resources\UserResource\RelationManagers;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -162,6 +163,13 @@ class UserResource extends Resource
             ->actions([Tables\Actions\EditAction::make()]);
     }
 
+
+    public static function getRelations(): array
+    {
+        return [
+            RelationManagers\BookingsRelationManager::class,
+        ];
+    }
     public static function getPages(): array
     {
         return [

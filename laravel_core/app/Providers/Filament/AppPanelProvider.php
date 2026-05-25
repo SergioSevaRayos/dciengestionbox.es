@@ -31,7 +31,7 @@ class AppPanelProvider extends PanelProvider
             ->path('app')
             ->login()
             ->passwordReset()
-            ->profile()
+            ->profile(\App\Filament\App\Pages\Auth\EditProfile::class)
             ->colors([
                 'primary' => Color::Amber,
             ])

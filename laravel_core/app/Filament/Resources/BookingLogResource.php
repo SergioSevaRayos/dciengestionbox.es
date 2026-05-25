@@ -17,7 +17,7 @@ class BookingLogResource extends Resource
     protected static ?string $navigationLabel = 'Auditoría Reservas';
     protected static ?string $pluralModelLabel = 'Auditoría de Reservas';
 
-    public static function canCreate(): bool { return false; } 
+    public static function canCreate(): bool { return false; }
 
     public static function table(Table $table): Table
     {

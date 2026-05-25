@@ -9,6 +9,8 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Columns\Layout\Stack;
+use Filament\Tables\Columns\Layout\Split;
 
 class TicketResource extends Resource
 {
@@ -66,43 +68,54 @@ class TicketResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->contentGrid(['md' => 2, 'xl' => 3])
             ->columns([
-                Tables\Columns\TextColumn::make('subject')
-                    ->label('Asunto')
-                    ->searchable()
-                    ->weight('bold'),
-                    
-                Tables\Columns\TextColumn::make('status')
-                    ->label('Estado')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'abierto' => 'danger',
-                        'en_proceso' => 'warning',
-                        'resuelto' => 'success',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => match ($state) {
-                        'abierto' => 'Abierto',
-                        'en_proceso' => 'En Revisión',
-                        'resuelto' => 'Resuelto',
-                        default => ucfirst($state),
-                    }),
-                    
-                Tables\Columns\TextColumn::make('priority')
-                    ->label('Prioridad')
-                    ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'baja' => 'gray',
-                        'media' => 'info',
-                        'alta' => 'danger',
-                        default => 'gray',
-                    })
-                    ->formatStateUsing(fn (string $state): string => ucfirst($state)),
-                    
-                Tables\Columns\TextColumn::make('created_at')
-                    ->label('Enviado el')
-                    ->dateTime('d M Y H:i')
-                    ->sortable(),
+                Stack::make([
+                    Split::make([
+                        Tables\Columns\TextColumn::make('subject')
+                            ->label('Asunto')
+                            ->searchable()
+                            ->weight('bold')
+                            ->size('md')
+                            ->grow(true),
+                        Tables\Columns\TextColumn::make('status')
+                            ->label('Estado')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'abierto' => 'danger',
+                                'en_proceso' => 'warning',
+                                'resuelto' => 'success',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state): string => match ($state) {
+                                'abierto' => 'Abierto',
+                                'en_proceso' => 'En Revisión',
+                                'resuelto' => 'Resuelto',
+                                default => ucfirst($state),
+                            })
+                            ->grow(false),
+                    ]),
+                    Split::make([
+                        Tables\Columns\TextColumn::make('priority')
+                            ->label('Prioridad')
+                            ->badge()
+                            ->color(fn (string $state): string => match ($state) {
+                                'baja' => 'gray',
+                                'media' => 'info',
+                                'alta' => 'danger',
+                                default => 'gray',
+                            })
+                            ->formatStateUsing(fn (string $state): string => ucfirst($state))
+                            ->grow(false),
+                        Tables\Columns\TextColumn::make('created_at')
+                            ->label('Enviado el')
+                            ->dateTime('d M Y H:i')
+                            ->sortable()
+                            ->icon('heroicon-m-clock')
+                            ->color('gray')
+                            ->grow(true),
+                    ]),
+                ])->space(2),
             ])
             ->filters([
                 Tables\Filters\SelectFilter::make('status')

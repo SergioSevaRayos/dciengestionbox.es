@@ -32,20 +32,12 @@ class ApplyGymBranding
                 $panel = Filament::getCurrentPanel();
                 if ($panel) {
                     if ($settings->logo) {
-                        $logoPath = storage_path('app/public/' . $settings->logo);
-                        if (file_exists($logoPath)) {
-                            $mime = File::mimeType($logoPath);
-                            $base64 = base64_encode(file_get_contents($logoPath));
-                            $panel->brandLogo('data:' . $mime . ';base64,' . $base64);
-                            $panel->brandLogoHeight('2.5rem');
-                        }
+                        $panel->brandLogo(asset('storage/' . $settings->logo));
+                        $panel->brandLogoHeight('2.5rem');
                     }
 
                     if ($settings->favicon) {
-                        $favPath = storage_path('app/public/' . $settings->favicon);
-                        if (file_exists($favPath)) {
-                            $panel->favicon(asset('storage/' . $settings->favicon));
-                        }
+                        $panel->favicon(asset('storage/' . $settings->favicon));
                     }
                 }
             }

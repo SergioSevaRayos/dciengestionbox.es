@@ -7,9 +7,7 @@ use Filament\Tables\Table;
 use Filament\Widgets\TableWidget as BaseWidget;
 use App\Models\GymSession;
 use App\Models\Booking;
-use App\Models\UserPackage;
 use Filament\Notifications\Notification;
-use Filament\Notifications\Actions\Action as NotifyAction;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
@@ -63,9 +61,8 @@ class TodayClassesWidget extends BaseWidget
                 Tables\Actions\Action::make('apuntarse')
                     ->label(function (GymSession $record) {
                         $user = Auth::user();
-                        // 🚀 NUEVA LÓGICA: ¿Tiene algún pase activo?
                         if (!$user->activePackages()->exists()) return 'Sin Clases';
-                        
+
                         $apertura = Carbon::parse($record->start_time)->subHours(12);
                         if (now()->lessThan($apertura)) return 'Abre ' . $apertura->format('H:i');
 
@@ -80,7 +77,7 @@ class TodayClassesWidget extends BaseWidget
                     ->color(function (GymSession $record) {
                         $user = Auth::user();
                         if (!$user->activePackages()->exists()) return 'danger';
-                        
+
                         $apertura = Carbon::parse($record->start_time)->subHours(12);
                         if (now()->lessThan($apertura)) return 'gray';
 
@@ -94,7 +91,7 @@ class TodayClassesWidget extends BaseWidget
                     ->disabled(function (GymSession $record) {
                         $user = Auth::user();
                         if (!$user->activePackages()->exists()) return true;
-                        
+
                         $apertura = Carbon::parse($record->start_time)->subHours(12);
                         if (now()->lessThan($apertura)) return true;
 
@@ -105,8 +102,6 @@ class TodayClassesWidget extends BaseWidget
                     ->visible(fn($record) => !$record->bookings()->where('user_id', Auth::id())->exists())
                     ->action(function (GymSession $record) {
                         $user = Auth::user();
-                        
-                        // 1. Buscamos el pase que vamos a usar (el que caduque antes)
                         $package = $user->activePackages()->orderBy('expires_at', 'asc')->first();
 
                         if (!$package) {
@@ -114,21 +109,29 @@ class TodayClassesWidget extends BaseWidget
                             return;
                         }
 
-                        // 2. Si es TARIFA, validamos límite semanal
+                        // Lógica Sincronizada con BD
                         if ($package->type === 'tarifa') {
-                            $inicioSemana = now()->startOfWeek();
-                            $finSemana = now()->endOfWeek();
-                            $reservasEstaSemana = $user->bookings()
-                                ->whereBetween('created_at', [$inicioSemana, $finSemana])
-                                ->count();
+                            $sessionDate = Carbon::parse($record->start_time);
+                            $limitAmount = (int) $package->limit_amount;
+                            
+                            if ($limitAmount > 0) {
+                                $reservas = $user->bookings()->where('status', 'booked')
+                                    ->whereHas('gymSession', function ($q) use ($sessionDate, $package) {
+                                        if ($package->limit_type === 'semanal') {
+                                            $q->whereBetween('start_time', [$sessionDate->copy()->startOfWeek(), $sessionDate->copy()->endOfWeek()]);
+                                        } elseif ($package->limit_type === 'mensual') {
+                                            $q->whereBetween('start_time', [$sessionDate->copy()->startOfMonth(), $sessionDate->copy()->endOfMonth()]);
+                                        } elseif ($package->limit_type === 'anual') {
+                                            $q->whereBetween('start_time', [$sessionDate->copy()->startOfYear(), $sessionDate->copy()->endOfYear()]);
+                                        }
+                                    })->count();
 
-                            if ($package->limit_amount > 0 && $reservasEstaSemana >= $package->limit_amount) {
-                                Notification::make()->title('Has agotado tus clases de esta semana.')->warning()->send();
-                                return;
+                                if ($reservas >= $limitAmount) {
+                                    Notification::make()->title("Has alcanzado tu límite {$package->limit_type} de {$limitAmount} clases.")->warning()->send();
+                                    return;
+                                }
                             }
-                        } 
-                        // 3. Si es BONO, validamos créditos (por si acaso, aunque activePackages ya filtra)
-                        elseif ($package->type === 'bono' && $package->remaining_credits <= 0) {
+                        } elseif ($package->type === 'bono' && $package->remaining_credits <= 0) {
                             Notification::make()->title('No te quedan clases en tu bono.')->danger()->send();
                             return;
                         }
@@ -147,19 +150,21 @@ class TodayClassesWidget extends BaseWidget
                                 $booking->gym_session_id = $session->id;
                                 $booking->status = 'booked';
                                 $booking->gym_id = $gymId;
-                                
+
                                 if (\Schema::hasColumn('bookings', 'user_package_id')) {
                                     $booking->user_package_id = $package->id;
                                 }
 
-                                $booking->save(); // El decrement de créditos en Booking.php SOLO debería ocurrir si es 'bono'
+                                if (!$booking->save()) {
+                                    return; 
+                                }
 
                                 $this->dispatch('credits-updated');
-                                $gym = \Filament\Facades\Filament::getTenant() ?? $user->gyms->first();
+                                $gym = Filament::getTenant() ?? $user->gyms->first();
                                 $settings = $gym ? \App\Models\GymSetting::where('gym_id', $gym->id)->first() : null;
                                 $logoUrl = ($settings && $settings->logo) ? asset('storage/' . $settings->logo) : asset('images/dcien-logo.png');
 
-                                \Filament\Notifications\Notification::make()
+                                Notification::make()
                                     ->title('¡Reserva Confirmada!')
                                     ->success()
                                     ->body(new \Illuminate\Support\HtmlString('
@@ -188,57 +193,60 @@ class TodayClassesWidget extends BaseWidget
                     ->action(function (GymSession $record) {
                         $user = Auth::user();
                         $package = $user->activePackages()->first();
-                        
+
                         if (!$package) {
                             Notification::make()->title('No tienes pases para confirmar.')->danger()->send();
                             return;
                         }
 
-                        $booking = $record->bookings()->where('user_id', $user->id)->where('status', 'waiting')->first();
-                        if ($booking) {
-                            $booking->status = 'booked';
-                            if (\Schema::hasColumn('bookings', 'user_package_id')) {
-                                $booking->user_package_id = $package->id;
-                            }
-                            $booking->save();
-                            
-                            // Si es bono, descontamos manualmente si tu modelo no lo hace
-                            if ($package->type === 'bono') {
-                                $package->decrement('remaining_credits');
-                            }
+                        DB::transaction(function () use ($record, $user, $package) {
+                            $session = GymSession::lockForUpdate()->find($record->id);
+                            if (!$session) return;
 
-                            $this->dispatch('credits-updated');
-                            Notification::make()->title('¡Plaza tuya!')->success()->send();
-                        }
+                            $booking = $session->bookings()->where('user_id', $user->id)->where('status', 'waiting')->first();
+                            if ($booking) {
+                                $booking->status = 'booked';
+                                if (\Schema::hasColumn('bookings', 'user_package_id')) {
+                                    $booking->user_package_id = $package->id;
+                                }
+                                
+                                if (!$booking->save()) return;
+
+                                if ($package->type === 'bono') {
+                                    $package->decrement('remaining_credits');
+                                }
+
+                                $this->dispatch('credits-updated');
+                                Notification::make()->title('¡Plaza tuya!')->success()->send();
+                            }
+                        });
                     }),
 
                 Tables\Actions\Action::make('desapuntarse')
-                    ->label(fn($record) => $record->bookings()->where('user_id', Auth::id())->where('status', 'waiting')->exists() ? 'Salir de Espera' : 'Cancelar Reserva')
-                    ->button()->color('danger')->requiresConfirmation()
+                    ->label('Cancelar Reserva')
+                    ->button()
+                    ->color('danger')
+                    ->requiresConfirmation()
                     ->visible(function (GymSession $record) {
-                        $booking = $record->bookings()->where('user_id', Auth::id())->first();
+                        $user = Auth::user();
+                        if (!$user) return false;
+                        
+                        $booking = $record->bookings()->where('user_id', $user->id)->whereIn('status', ['booked', 'waiting'])->first();
                         if (!$booking) return false;
-                        if ($booking->status === 'booked' && $record->start_time) {
-                            $limitTime = Carbon::parse($record->start_time)->subMinutes(60);
-                            if (now()->greaterThanOrEqualTo($limitTime)) return false;
+                        
+                        // Solo bloqueamos la cancelación en la última hora para plazas confirmadas
+                        if ($booking->status === 'booked' && $record->start_time && now()->greaterThanOrEqualTo(Carbon::parse($record->start_time)->subMinutes(60))) {
+                            return false;
                         }
+                        
                         return true;
                     })
                     ->action(function (GymSession $record) {
-                        $booking = $record->bookings()->where('user_id', Auth::id())->first();
-                        if (!$booking) return;
-
-                        if ($booking->delete()) {
+                        $user = Auth::user();
+                        $booking = $record->bookings()->where('user_id', $user->id)->whereIn('status', ['booked', 'waiting'])->first();
+                        if ($booking && $booking->delete()) {
                             $this->dispatch('credits-updated');
-                            $siguiente = $record->bookings()->where('status', 'waiting')->orderBy('created_at', 'asc')->first();
-                            if ($siguiente) {
-                                $siguiente->update(['notified_at' => now()]);
-                                Notification::make()
-                                    ->title('¡Hueco libre en ' . $record->classType->name . '!')
-                                    ->body('Tienes 5 MINUTOS para confirmar.')
-                                    ->actions([ NotifyAction::make('aceptar')->label('Aceptar')->button()->color('success')->url("/confirmar-reserva/{$siguiente->id}") ])
-                                    ->sendToDatabase($siguiente->user);
-                            }
+                            Notification::make()->title('Reserva cancelada')->danger()->send();
                         }
                     }),
             ]);

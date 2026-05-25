@@ -80,4 +80,19 @@ class Gym extends Model
     {
         return $this->hasMany(\App\Models\Ticket::class);
     }
+
+    public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(\App\Models\GymSetting::class);
+    }
+
+    public function arenaCompetitions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ArenaCompetition::class);
+    }
+
+    public function arenaTeams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(ArenaTeam::class);
+    }
 }

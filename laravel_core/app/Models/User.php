@@ -8,17 +8,25 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Filament\Models\Contracts\FilamentUser;
 use Filament\Models\Contracts\HasTenants;
+use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Support\Collection;
 use Illuminate\Database\Eloquent\Model;
 
-class User extends Authenticatable implements FilamentUser, HasTenants
+class User extends Authenticatable implements FilamentUser, HasTenants, HasAvatar
 {
     use Notifiable;
 
-    protected $fillable = ['gym_id', 'name', 'email', 'password', 'role'];
-    protected $hidden = ['password', 'remember_token'];
-    protected $casts = ['password' => 'hashed'];
+    protected $fillable = ['gym_id', 'name', 'email', 'password', 'role', 'avatar'];
+    protected $hidden   = ['password', 'remember_token'];
+    protected $casts    = ['password' => 'hashed'];
+
+    // Filament avatar
+    public function getFilamentAvatarUrl(): ?string
+    {
+        if (!$this->avatar) return null;
+        return asset('storage/' . $this->avatar);
+    }
 
     public function gyms(): BelongsToMany { return $this->belongsToMany(Gym::class, 'gym_user'); }
     public function gym(): BelongsTo { return $this->belongsTo(Gym::class); }
@@ -44,7 +52,7 @@ class User extends Authenticatable implements FilamentUser, HasTenants
 
     public function activePackages() {
         return $this->userPackages()->where('expires_at', '>', now())->where(function ($query) {
-                $query->where('remaining_credits', '>', 0)->orWhere('type', 'tarifa');
+            $query->where('remaining_credits', '>', 0)->orWhere('type', 'tarifa');
         });
     }
 
