@@ -97,25 +97,24 @@ class ManageBranding extends Page
 
     public function save(): void
     {
+        $data = $this->form->getState();
+
         $tenant   = Filament::getTenant();
         $settings = GymSetting::where('gym_id', $tenant->id)->first();
 
         if ($settings) {
-            // Si FileUpload devuelve array, extraer la ruta; si es string, usarlo directamente
-            $logo    = is_array($this->logo)
-                ? collect($this->logo)->first()
-                : $this->logo;
-            $favicon = is_array($this->favicon)
-                ? collect($this->favicon)->first()
-                : $this->favicon;
-
             $settings->update([
-                'gym_name'      => $this->gym_name,
-                'primary_color' => $this->primary_color,
-                'logo'          => $logo ?: $settings->logo,
-                'favicon'       => $favicon ?: $settings->favicon,
-                'enable_arena'  => $this->enable_arena,
+                'gym_name'      => $data['gym_name'],
+                'primary_color' => $data['primary_color'],
+                'logo'          => $data['logo'],
+                'favicon'       => $data['favicon'],
+                'enable_arena'  => $data['enable_arena'],
             ]);
+
+            // Actualizar propiedades locales para reflejar el estado actual
+            $this->logo = $data['logo'] ? [$data['logo'] => $data['logo']] : [];
+            $this->favicon = $data['favicon'] ? [$data['favicon'] => $data['favicon']] : [];
+            $this->form->fill($data);
         }
 
         Notification::make()->title('Configuración actualizada')->success()->send();
