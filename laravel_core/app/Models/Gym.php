@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Gym extends Model
 {
@@ -76,22 +77,22 @@ class Gym extends Model
     /**
      * Relación con los tickets de soporte.
      */
-    public function tickets(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function tickets(): HasMany
     {
         return $this->hasMany(\App\Models\Ticket::class);
     }
 
-    public function settings(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function settings(): HasOne
     {
         return $this->hasOne(\App\Models\GymSetting::class);
     }
 
-    public function arenaCompetitions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function arenaCompetitions(): HasMany
     {
         return $this->hasMany(ArenaCompetition::class);
     }
 
-    public function arenaTeams(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function arenaTeams(): HasMany
     {
         return $this->hasMany(ArenaTeam::class);
     }

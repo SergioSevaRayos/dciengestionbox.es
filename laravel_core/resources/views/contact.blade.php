@@ -30,7 +30,7 @@
                 </section>
             </div>
 
-            <div class="border border-white/10 p-8 bg-white/[0.02]">
+            <div class="border border-white/10 p-8 bg-white/2">
                 <form action="{{ route('contact.submit') }}" method="POST" class="space-y-6"> @csrf
                     <div>
                         <label class="block text-[9px] uppercase tracking-[0.2em] text-gray-500 mb-2">Nombre completo</label>

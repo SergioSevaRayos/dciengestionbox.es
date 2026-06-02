@@ -65,11 +65,11 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::BODY_END,
-                fn (): string => view('filament.footer.contact')
+                fn () => view('filament.footer.contact')
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::GLOBAL_SEARCH_BEFORE,
-                fn (): string => view('filament.components.pwa-install-button')
+                fn () => view('filament.components.pwa-install-button')
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
@@ -79,7 +79,7 @@ class AdminPanelProvider extends PanelProvider
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn (): string => view('filament.components.pwa-login-banner')
+                fn () => view('filament.components.pwa-login-banner')
             )
             ->middleware([
                 EncryptCookies::class,

@@ -2,7 +2,7 @@
     <div class="space-y-6">
         @if($tenant->is_subscribed)
             <div class="p-6 bg-success-50 dark:bg-success-500/10 border border-success-200 dark:border-success-500/20 rounded-xl flex items-start gap-4">
-                <x-heroicon-o-shield-check class="w-8 h-8 text-success-600 dark:text-success-400 flex-shrink-0" />
+                <x-heroicon-o-shield-check class="w-8 h-8 text-success-600 dark:text-success-400 shrink-0" />
                 <div>
                     <h3 class="text-lg font-bold text-success-800 dark:text-success-400">Suscripción Activa</h3>
                     <p class="text-success-700 dark:text-success-500 text-sm mt-1">Tu gimnasio tiene acceso completo a todas las funciones de la plataforma. Tu próximo cobro se realizará automáticamente a través de Stripe.</p>
@@ -10,7 +10,7 @@
             </div>
         @else
             <div class="p-6 bg-danger-50 dark:bg-danger-500/10 border border-danger-200 dark:border-danger-500/20 rounded-xl flex items-start gap-4">
-                <x-heroicon-o-lock-closed class="w-8 h-8 text-danger-600 dark:text-danger-400 flex-shrink-0" />
+                <x-heroicon-o-lock-closed class="w-8 h-8 text-danger-600 dark:text-danger-400 shrink-0" />
                 <div>
                     <h3 class="text-lg font-bold text-danger-800 dark:text-danger-400">Plataforma Bloqueada (Modo Lectura)</h3>
                     <p class="text-danger-700 dark:text-danger-500 text-sm mt-1">Actualmente puedes navegar por la plataforma y ver tus datos históricos, pero <strong>no puedes añadir clases, registrar alumnos ni realizar cobros</strong>. Activa tu suscripción en la parte superior para desbloquear tu cuenta.</p>

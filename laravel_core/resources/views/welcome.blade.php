@@ -100,7 +100,7 @@
             </div>
         </div>
         <div class="lg:w-1/2 mt-20 lg:mt-0 opacity-10 dark:opacity-30 flex justify-center">
-            <img src="/logo-training.png" alt="Logo DCIEN" class="w-64 md:w-96 lg:w-[25rem] object-contain select-none hover:scale-105 transition-transform duration-500 dark:invert-0 invert">
+            <img src="/logo-training.png" alt="Logo DCIEN" class="w-64 md:w-96 lg:w-100 object-contain select-none hover:scale-105 transition-transform duration-500 dark:invert-0 invert">
         </div>
     </main>
 
@@ -150,7 +150,7 @@
 
             <div class="flex flex-col lg:flex-row items-center gap-16 mb-32">
                 <div class="lg:w-1/2 order-2 lg:order-1 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/reserva.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed font-light mb-6">Se acabaron las sorpresas en recepción. La app te avisa cuando te quedan pocas clases o días para caducar. Solicita tu nuevo bono con un botón y el gestor te lo activará en segundos.</p>
                 </div>
                 <div class="lg:w-1/2 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/renovacion.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -180,7 +180,7 @@
 
             <div class="flex flex-col lg:flex-row items-center gap-16 mb-32">
                 <div class="lg:w-1/2 order-2 lg:order-1 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/horario.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -202,7 +202,7 @@
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed font-light mb-6">Mídete contra los WODs más icónicos. Registra tus tiempos en Fran, Murph o Cindy y visualiza tu progreso histórico con gráficas de evolución. Superar tus marcas nunca fue tan visual.</p>
                 </div>
                 <div class="lg:w-1/2 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/benchmarks.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -210,7 +210,7 @@
 
             <div class="flex flex-col lg:flex-row items-center gap-16 mb-32">
                 <div class="lg:w-1/2 order-2 lg:order-1 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/marcas.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -232,7 +232,7 @@
                     <p class="text-gray-600 dark:text-gray-400 leading-relaxed font-light mb-6">Un reloj profesional en tu bolsillo. Modos AMRAP, EMOM, Tabata y For Time con señales acústicas. Ideal para tus sesiones de Open Box o cuando entrenas fuera del box.</p>
                 </div>
                 <div class="lg:w-1/2 flex justify-center">
-                    <div class="mockup-glow w-[280px] h-[580px] bg-white dark:bg-[#111] border-[8px] border-gray-200 dark:border-[#222] rounded-[2rem] overflow-hidden relative shadow-2xl dark:shadow-none">
+                    <div class="mockup-glow w-70 h-145 bg-white dark:bg-[#111] border-8 border-gray-200 dark:border-[#222] rounded-4xl overflow-hidden relative shadow-2xl dark:shadow-none">
                         <video src="/images/timer.mp4" autoplay loop muted playsinline class="w-full h-full object-cover opacity-90 dark:opacity-80"></video>
                     </div>
                 </div>
@@ -240,7 +240,7 @@
         </div>
     </section>
 
-    <section class="py-24 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-[#000]">
+    <section class="py-24 border-b border-gray-200 dark:border-white/5 bg-white dark:bg-black">
         <div class="max-w-7xl mx-auto px-8 text-center">
             <h3 class="text-2xl font-black uppercase tracking-widest mb-16 italic text-gray-400 dark:text-gray-500">Comenzar es así de simple</h3>
             <div class="flex flex-col md:flex-row justify-center items-center gap-12 md:gap-24">

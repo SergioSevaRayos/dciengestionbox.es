@@ -47,7 +47,7 @@ class AppPanelProvider extends PanelProvider
             ->discoverWidgets(in: app_path('Filament/App/Widgets'), for: 'App\\Filament\\App\\Widgets')
             ->renderHook(
                 \Filament\View\PanelsRenderHook::AUTH_LOGIN_FORM_BEFORE,
-                fn (): string => view('filament.components.pwa-login-banner')
+                fn () => view('filament.components.pwa-login-banner')
             )
             ->renderHook(
                 \Filament\View\PanelsRenderHook::HEAD_END,
